@@ -31,17 +31,58 @@ app=FastAPI(title='ARC · Understand every moment.',lifespan=lifespan)
 
 @app.middleware('http')
 async def local_origin(request: Request, call_next):
-    # Local app, no authentication. Prevent cross-site writes and DNS rebinding.
-    host=(request.url.hostname or '').lower()
-    origin=request.headers.get('origin')
-    if host not in {'localhost','127.0.0.1','::1','testserver'}:
-        return JSONResponse({'detail':'ARC is available on localhost only.'},status_code=403)
-    if request.method not in {'GET','HEAD','OPTIONS'} and origin:
-        p=urlparse(origin)
-        if p.scheme not in {'http','https'} or p.hostname not in {'localhost','127.0.0.1','::1'}:
-            return JSONResponse({'detail':'Cross-site requests are not allowed.'},status_code=403)
-    return await call_next(request)
+    # Allow local development and the deployed Render backend.
+    allowed_hosts = {
+        'localhost',
+        '127.0.0.1',
+        '::1',
+        'testserver',
+        'final-arc.onrender.com',
+    }
 
+    # Allow additional hosts configured in Render.
+    allowed_hosts.update(
+        h.strip().lower()
+        for h in os.getenv('ARC_ALLOWED_HOSTS', '').split(',')
+        if h.strip()
+    )
+
+    host = (request.url.hostname or '').lower()
+
+    if host not in allowed_hosts:
+        return JSONResponse(
+            {'detail': 'Host not allowed.'},
+            status_code=403
+        )
+
+    # Allow local frontend and deployed Vercel frontends.
+    allowed_origins = {
+        'localhost',
+        '127.0.0.1',
+        '::1',
+        'final-arc-git-main-recursiveom.vercel.app',
+        'final-q1ucg5spd-recursiveom.vercel.app',
+    }
+
+    allowed_origins.update(
+        h.strip().lower()
+        for h in os.getenv('ARC_ALLOWED_ORIGINS', '').split(',')
+        if h.strip()
+    )
+
+    origin = request.headers.get('origin')
+
+    if request.method not in {'GET', 'HEAD', 'OPTIONS'} and origin:
+        parsed = urlparse(origin)
+        origin_host = (parsed.hostname or '').lower()
+
+        if parsed.scheme not in {'http', 'https'} or origin_host not in allowed_origins:
+            return JSONResponse(
+                {'detail': 'Origin not allowed.'},
+                status_code=403
+            )
+
+    return await call_next(request)
 @app.exception_handler(ProcessingError)
 async def processing_error(request, exc):
     return JSONResponse({'detail':str(exc)},status_code=502)
