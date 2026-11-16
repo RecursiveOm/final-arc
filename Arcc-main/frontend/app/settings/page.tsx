@@ -1,4 +1,142 @@
 'use client';
-import { Check, CircleHelp } from 'lucide-react';
+
+import { Check, CircleHelp, Shield, Cpu, Palette, Sparkles, RefreshCw } from 'lucide-react';
 import { ThemeControl, ErrorNotice, useApp } from '@/components/app-shell';
-export default function SettingsPage(){const {settings,error,refresh}=useApp();return <div className="page settings-page"><div className="eyebrow">MAKE YOURSELF AT HOME</div><h1>Your workspace.</h1><p className="page-description">A few preferences. A little peace of mind.</p>{error&&<ErrorNotice detail={error} retry={()=>void refresh()}/>}<section className="settings-section"><div><h2>Appearance</h2><p>Warm light, quiet dark, or in step with your device.</p></div><ThemeControl/></section><section className="settings-section"><div><h2>Analysis connection</h2><p>Summaries and answers use your configured language model.</p></div><div><span className="connection-status">{settings?.deepseek_configured?<Check size={17}/>:<CircleHelp size={17}/>} {settings?settings.deepseek_configured?'Connected':'Setup needed':'Checking connection…'}</span><details className="technical-details"><summary>Connection details</summary><p>Provider model: {settings?.deepseek_model||'Not available'}</p><p>Configure OPENROUTER_API_KEY in backend/.env, then restart the backend. Your key stays on the backend.</p></details></div></section><section className="settings-section"><div><h2>Local processing</h2><p>Your files and video intelligence live on this device.</p></div><dl><div><dt>Speech recognition</dt><dd>{settings?.whisper_model||'—'}</dd></div><div><dt>Media processing</dt><dd>{settings?settings.ffmpeg_available?'Available':'Unavailable':'—'}</dd></div><div><dt>Upload limit</dt><dd>{settings?.max_upload_mb||'—'} MB</dd></div></dl></section><section className="privacy-section"><h2>Private by design. Clear about the rest.</h2><p>Video files, transcripts, embeddings, and conversations are stored locally. Transcript excerpts and summary context are sent to the configured model provider to generate insights. YouTube playback connects to YouTube.</p></section></div>;}
+
+export default function SettingsPage() {
+  const { settings, error, refresh } = useApp();
+
+  return (
+    <div className="page settings-page">
+      <div className="page-heading">
+        <div>
+          <div className="eyebrow">
+            <Sparkles size={14} />
+            WORKSPACE PREFERENCES
+          </div>
+          <h1>
+            System &amp; <span className="gradient-text">Settings.</span>
+          </h1>
+          <p className="page-description">Configure your local processing engine, language models, and appearance.</p>
+        </div>
+        <button className="button secondary" onClick={() => void refresh()}>
+          <RefreshCw size={15} />
+          Refresh Status
+        </button>
+      </div>
+
+      {error && <ErrorNotice detail={error} retry={() => void refresh()} />}
+
+      {/* Appearance Section */}
+      <section className="settings-section">
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <Palette size={18} color="var(--accent)" />
+            <h2>Interface Appearance</h2>
+          </div>
+          <p>Switch between warm light, deep dark obsidian, or synchronize automatically with your operating system.</p>
+        </div>
+        <div>
+          <ThemeControl />
+        </div>
+      </section>
+
+      {/* Analysis Connection Section */}
+      <section className="settings-section">
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <Sparkles size={18} color="var(--accent)" />
+            <h2>Analysis &amp; LLM Provider</h2>
+          </div>
+          <p>
+            Topic labels, hierarchical summaries, and grounded Q&amp;A use your configured OpenRouter or custom LLM route.
+          </p>
+        </div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+            <span
+              className="status"
+              style={{
+                fontSize: '13px',
+                padding: '6px 14px',
+                borderRadius: 'var(--radius-full)',
+                background: settings?.deepseek_configured ? 'var(--success-light)' : 'var(--warning-light)',
+                color: settings?.deepseek_configured ? 'var(--success)' : 'var(--warning)',
+              }}
+            >
+              {settings ? (
+                settings.deepseek_configured ? (
+                  <>
+                    <Check size={15} strokeWidth={2.5} /> Engine Connected
+                  </>
+                ) : (
+                  <>
+                    <CircleHelp size={15} /> Setup Required
+                  </>
+                )
+              ) : (
+                'Checking connection…'
+              )}
+            </span>
+          </div>
+
+          <details className="technical-details" open style={{ marginTop: '10px' }}>
+            <summary>Active Provider Configuration</summary>
+            <p>
+              <strong>Configured Model:</strong> {settings?.deepseek_model || 'Not available'}
+            </p>
+            <p style={{ marginTop: '8px' }}>
+              Your key is stored securely in <code>backend/.env</code> and never exposed to client browsers.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      {/* Local Processing Engine */}
+      <section className="settings-section">
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+            <Cpu size={18} color="var(--accent)" />
+            <h2>On-Device Processing</h2>
+          </div>
+          <p>
+            Speech recognition, audio extraction, vector embeddings, and topic clustering execute directly on your hardware.
+          </p>
+        </div>
+        <dl>
+          <div>
+            <dt>Speech Recognition Engine</dt>
+            <dd>Whisper ({settings?.whisper_model || 'small'} model)</dd>
+          </div>
+          <div>
+            <dt>Media Acceleration (FFmpeg)</dt>
+            <dd style={{ color: settings?.ffmpeg_available ? 'var(--success)' : 'var(--danger)' }}>
+              {settings ? (settings.ffmpeg_available ? 'Hardware Ready' : 'Unavailable') : '—'}
+            </dd>
+          </div>
+          <div>
+            <dt>Max Ingest File Size</dt>
+            <dd>{settings?.max_upload_mb || '—'} MB</dd>
+          </div>
+          <div>
+            <dt>Vector Database</dt>
+            <dd>Chroma (Persistent on-device storage)</dd>
+          </div>
+        </dl>
+      </section>
+
+      {/* Privacy Standards */}
+      <section className="privacy-section">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <Shield size={20} color="var(--success)" />
+          <h2 style={{ fontSize: '22px' }}>Local-First Privacy Architecture</h2>
+        </div>
+        <p>
+          Your video files, raw audio tracks, Whisper transcripts, vector embeddings, and conversation histories are stored
+          locally on this machine. Only bounded transcript context is shared with your chosen model provider when generating
+          summaries or answering grounded chat queries.
+        </p>
+      </section>
+    </div>
+  );
+}
