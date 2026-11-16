@@ -3,19 +3,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
     "frontend": {
-      "root": "Arcc-main/frontend/",
-      "framework": "nextjs",
-      "bindings": [
-        {
-          "type": "service",
-          "service": "backend",
-          "format": "url",
-          "env": "BACKEND_URL"
-        }
-      ]
+      "root": "frontend/",
+      "framework": "nextjs"
     },
     "backend": {
-      "root": "Arcc-main/backend/",
+      "root": "backend/",
       "framework": "fastapi",
       "entrypoint": "app.main:app"
     }
